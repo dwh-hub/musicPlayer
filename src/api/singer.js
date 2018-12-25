@@ -18,6 +18,7 @@ export function getSingerList () {
   return jsonp(url, data, options)
 }
 
+// ↓↓ jsonp拿不到vkey参数， 转用webpack代理了 ↓↓
 export function getSingerDetail (singerId) {
   const url = 'https://c.y.qq.com/v8/fcg-bin/fcg_v8_singer_track_cp.fcg'
   const data = Object.assign({}, commonParams, {
