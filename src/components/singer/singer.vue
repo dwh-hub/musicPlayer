@@ -81,7 +81,7 @@ export default {
       return hot.concat(ret)
     },
     ...mapMutations({
-      setSinger: 'SET_SINGER'
+      setSinger: 'setSinger'
     })
   }
 }
