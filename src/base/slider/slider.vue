@@ -111,7 +111,7 @@
     },
     activated () {
       if (this.autoPlay) {
-        this._play()
+        // this._play()
       }
     },
     deactivated () {

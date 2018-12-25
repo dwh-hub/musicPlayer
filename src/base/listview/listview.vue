@@ -1,10 +1,16 @@
 <template>
-  <scroll class="listview" :data="data" ref="listView" :listScroll="listScroll" :probeType="3" @scroll="scroll">
+  <scroll class="listview" 
+          :data="data" 
+          ref="listView" 
+          :listScroll="listScroll" 
+          :probeType="3" 
+          @scroll="scroll"
+          :click="true">
     <ul>
       <li v-for="group in data" :key="group.id" class="list-group" ref="listGroup">
         <h2 class="list-group-title">{{group.title}}</h2>
         <ul>
-          <li v-for="item in group.items" :key="item.id" class="list-group-item">
+          <li @click="selectItem(item)" v-for="item in group.items" :key="item.id" class="list-group-item">
             <img class="avatar" v-lazy="item.avatar">
             <span class="name">{{item.name}}</span>
           </li>
@@ -74,6 +80,9 @@
       }
     },
     methods: {
+      selectItem (item) {
+        this.$emit('select', item)
+      },
       onTouchstart (e) {
         // e.target: 获取鼠标点击的事件目标，li元素DOM对象
         let index = getData(e.target, 'index')
