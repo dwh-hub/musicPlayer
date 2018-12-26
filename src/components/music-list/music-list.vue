@@ -14,9 +14,9 @@
       <div class="filter" ref="filter"></div>
     </div>
     <div class="bg-layer" ref="layer"></div>
-    <scroll @scroll="scroll" :data="songs" :probe-type="probeType" :list-scroll="listenScroll" class="list" ref="list">
+    <scroll @scroll="scroll" :click="true" :data="songs" :probe-type="probeType" :list-scroll="listenScroll" class="list" ref="list">
       <div class="song-list-wrapper">
-        <song-list :songs="songs"></song-list>
+        <song-list @select="selectItem" :songs="songs"></song-list>
       </div>
       <div class="loading-container" v-show="!songs.length">
         <loading></loading>
@@ -30,6 +30,7 @@
   import songList from 'base/song-list/song-list'
   import {prefixStyle} from 'common/js/dom'
   import loading from 'base/loading/loading'
+  import {mapActions} from 'vuex'
 
   const TRANSFORM = prefixStyle('transform')
   const BACKGROUND_FILTER = prefixStyle('background-filter')
@@ -82,7 +83,16 @@
       },
       back() {
         this.$router.back()
-      }
+      },
+      selectItem(item, index) {
+        this.selectPlay({
+          list: this.songs,
+          index: index
+        })
+      },
+      ...mapActions([
+        'selectPlay'
+      ])
     },
     watch: {
       scrollY(newY) {
