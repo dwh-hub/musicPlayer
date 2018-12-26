@@ -15,7 +15,7 @@
         <div class="middle">
           <div class="middle-l">
             <div class="cd-wrapper">
-              <div class="cd">
+              <div class="cd" :class="cdClasss">
                 <img class="image" :src="currentSong.image">
               </div>
             </div>
@@ -30,10 +30,10 @@
               <i class="icon-prev"></i>
             </div>
             <div class="icon i-center">
-              <i class="icon-play"></i>
+              <i :class="playIcon" @click="togglePlaying"></i>
             </div>
             <div class="icon i-right">
-              <i class="icon-next"></i>
+              <i class="icon-next" @click="nextSong"></i>
             </div>
             <div class="icon i-right">
               <i class="icon icon-not-favorite"></i>
@@ -45,18 +45,21 @@
     <transition name="mini">
       <div class="mini-player" v-show="!fullScreen" @click="open">
         <div class="icon">
-          <img width="40" height="40" :src="currentSong.image">
+          <img :class="cdClasss" width="40" height="40" :src="currentSong.image">
         </div>
         <div class="text">
           <h2 class="name" v-html="currentSong.name"></h2>
           <p class="desc" v-html="currentSong.singer"></p>
         </div>
-        <div class="control"></div>
+        <div class="control">
+          <i :class="miniIcon" @click.stop="togglePlaying"></i>
+        </div>
         <div class="control">
           <i class="icon-playlist"></i>
         </div>
       </div>
     </transition>
+    <audio :src="currentSong.url" ref="audio"></audio>
   </div>
 </template>
 
@@ -65,10 +68,20 @@ import {mapGetters, mapMutations} from 'vuex'
 export default {
   name: 'player',
   computed: {
+    cdClasss() {
+      return this.playing ? 'play' : 'play-pause'
+    },
+    playIcon() {
+      return this.playing ? 'icon-pause' : 'icon-play'
+    },
+    miniIcon() {
+      return this.playing ? 'icon-pause-mini' : 'icon-play-mini'
+    },
     ...mapGetters([
       'fullScreen',
       'playList',
-      'currentIndex'
+      'currentIndex',
+      'playing'
     ]),
     currentSong() {
       return this.playList[this.currentIndex] || {}
@@ -81,14 +94,64 @@ export default {
     open() {
       this.setFullScreen(true)
     },
+    enter(el, done) {
+
+    },
+    afterEnter() {
+
+    },
+    leave(el, done) {
+
+    },
+    leaveEnter() {
+
+    },
+    togglePlaying() {
+      this.setPlayingState(!this.playing)
+    },
+    prevSong() {
+      let curIndex = this.currentIndex - 1
+      if (curIndex === -1) {
+        curIndex = this.playList.length - 1
+      }
+      this.setCueentIndex(curIndex)
+      if (!this.playing) {
+        this.togglePlaying()
+      }
+    },
+    nextSong() {
+      let curIndex = this.currentIndex + 1
+      if (curIndex === this.playList.length) {
+        curIndex = 0
+      }
+      this.setCueentIndex(curIndex)
+      if (!this.playing) {
+        this.togglePlaying()
+      }
+    },
     ...mapMutations({
-      setFullScreen: 'SET_FULL_SCREEN'
+      setFullScreen: 'SET_FULL_SCREEN',
+      setPlayingState: 'SET_PLAYING_STATE',
+      setCueentIndex: 'SET_CURRENT_INDEX'
     })
+  },
+  watch: {
+    currentSong() {
+      this.$nextTick(() => {
+        this.$refs.audio.play()
+      })
+    },
+    playing(newPlaying) {
+      const audio = this.$refs.audio
+      this.$nextTick(() => {
+        newPlaying ? audio.play() : audio.pause()
+      })
+    }
   }
 }
 </script>
 
-<style lang="stylus" rel="stylesheet/stylus">
+<style scoped lang="stylus" rel="stylesheet/stylus">
   @import '~common/stylus/variable'
   @import '~common/stylus/mixin'
 
@@ -159,22 +222,26 @@ export default {
             .cd
               width 100%
               height 100%
-              box-sizing border-box
-              border 10px solid rgba(255, 255, 255, 0.1)
               border-radius 50%
+              &.play
+                animation rotate 20s linear infinite
+              &.play-pause
+                animation-play-state paused
               .image
                 position: absolute
                 left: 0
                 top: 0
                 width: 100%
                 height: 100%
+                box-sizing border-box
                 border-radius: 50%
-        // .middle-r
-        //   display inline-block
-        //   vertical-align top
-        //   width 100%
-        //   height 100%
-        //   overflow hidden
+                border 10px solid rgba(255, 255, 255, 0.1)
+        .middle-r
+          display inline-block
+          vertical-align top
+          width 100%
+          height 100%
+          overflow hidden
       .bottom
         position absolute
         bottom 50px
@@ -204,7 +271,7 @@ export default {
             text-right left
           .icon-favorite
             color $color-sub-theme
-      &.normal-enter-avtive, &.normal-leave-active
+      &.normal-enter-active, &.normal-leave-active
         transition all 0.4s
         .top, .bottom
           transition all 0.4s cubic-bezier(0.86, 0.18, 0.82, 1.32)
@@ -234,6 +301,10 @@ export default {
         padding 0 10px 0 20px
         img
           border-radius 50%
+          &.play
+            animation rotate 10s linear infinite
+          &.play-pause
+            animation-play-state paused
       .text
         display flex
         flex-direction column
@@ -262,4 +333,10 @@ export default {
           position absolute
           left 0
           top 0
+  
+  @keyframes rotate
+    0%
+      transform rotate(0)
+    100%
+      transform rotate(360deg)
 </style>
