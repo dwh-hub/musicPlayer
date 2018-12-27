@@ -25,7 +25,7 @@
           <div class="progress-wrapper">
             <span class="time time-l">{{format(currentTime)}}</span>
             <div class="progress-bar-wrapper">
-              <progreessBar></progreessBar>
+              <progressBar :percent="percent" @percentChange="onProgressBarChange"></progressBar>
             </div>
             <span class="time time-r">{{format(currentSong.durtaion)}}</span>
           </div>
@@ -72,7 +72,7 @@
 
 <script>
 import {mapGetters, mapMutations} from 'vuex'
-import progreessBar from 'base/progreess-bar/progreess-bar'
+import progressBar from 'base/progress-bar/progress-bar'
 
 export default {
   name: 'player',
@@ -83,11 +83,11 @@ export default {
      }
   },
   components: {
-    progreessBar
+    progressBar
   },
   computed: {
     cdClasss() {
-      return this.playing ? 'play' : 'play-pause'
+      return this.playing ? 'play' : 'play play-pause'
     },
     playIcon() {
       return this.playing ? 'icon-pause' : 'icon-play'
@@ -97,6 +97,10 @@ export default {
     },
     disableClass() {
       return this.songReady ? '' : 'disable'
+    },
+    // 计算进度条的百分百
+    percent() {
+      return this.currentTime / this.currentSong.durtaion
     },
     ...mapGetters([
       'fullScreen',
@@ -172,6 +176,9 @@ export default {
       const minute = interval / 60 | 0
       const second = interval % 60
       return second < 10 ? `${minute}:0${second}` : `${minute}:${second}`
+    },
+    onProgressBarChange(percent) {
+      this.$refs.audio.currentTime = percent * this.currentSong.durtaion
     },
     ...mapMutations({
       setFullScreen: 'SET_FULL_SCREEN',
