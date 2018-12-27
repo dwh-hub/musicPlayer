@@ -22,17 +22,24 @@
           </div>
         </div>  
         <div class="bottom">
+          <div class="progress-wrapper">
+            <span class="time time-l">{{format(currentTime)}}</span>
+            <div class="progress-bar-wrapper">
+              <progreessBar></progreessBar>
+            </div>
+            <span class="time time-r">{{format(currentSong.durtaion)}}</span>
+          </div>
           <div class="operators">
             <div class="icon i-left">
               <i class="icon-sequence"></i>
             </div>
-            <div class="icon i-left">
+            <div class="icon i-left" :class="disableClass">
               <i class="icon-prev"></i>
             </div>
-            <div class="icon i-center">
+            <div class="icon i-center" :class="disableClass">
               <i :class="playIcon" @click="togglePlaying"></i>
             </div>
-            <div class="icon i-right">
+            <div class="icon i-right" :class="disableClass">
               <i class="icon-next" @click="nextSong"></i>
             </div>
             <div class="icon i-right">
@@ -59,14 +66,25 @@
         </div>
       </div>
     </transition>
-    <audio :src="currentSong.url" ref="audio"></audio>
+    <audio :src="currentSong.url" ref="audio" @canplay="ready" @error="error" @timeupdate="updateTime"></audio>
   </div>
 </template>
 
 <script>
 import {mapGetters, mapMutations} from 'vuex'
+import progreessBar from 'base/progreess-bar/progreess-bar'
+
 export default {
   name: 'player',
+  data() {
+     return {
+       songReady: false,
+       currentTime: 0
+     }
+  },
+  components: {
+    progreessBar
+  },
   computed: {
     cdClasss() {
       return this.playing ? 'play' : 'play-pause'
@@ -76,6 +94,9 @@ export default {
     },
     miniIcon() {
       return this.playing ? 'icon-pause-mini' : 'icon-play-mini'
+    },
+    disableClass() {
+      return this.songReady ? '' : 'disable'
     },
     ...mapGetters([
       'fullScreen',
@@ -110,6 +131,9 @@ export default {
       this.setPlayingState(!this.playing)
     },
     prevSong() {
+      if (!this.songReady) {
+        return
+      }
       let curIndex = this.currentIndex - 1
       if (curIndex === -1) {
         curIndex = this.playList.length - 1
@@ -118,8 +142,12 @@ export default {
       if (!this.playing) {
         this.togglePlaying()
       }
+      this.songReady = false
     },
     nextSong() {
+      if (!this.songReady) {
+        return
+      }
       let curIndex = this.currentIndex + 1
       if (curIndex === this.playList.length) {
         curIndex = 0
@@ -128,6 +156,22 @@ export default {
       if (!this.playing) {
         this.togglePlaying()
       }
+      this.songReady = false
+    },
+    ready() {
+      this.songReady = true
+    },
+    error() {
+      this.songReady = true
+    },
+    updateTime(e) {
+      this.currentTime = e.target.currentTime
+    },
+    format(interval) {
+      interval = interval | 0
+      const minute = interval / 60 | 0
+      const second = interval % 60
+      return second < 10 ? `${minute}:0${second}` : `${minute}:${second}`
     },
     ...mapMutations({
       setFullScreen: 'SET_FULL_SCREEN',
@@ -249,6 +293,23 @@ export default {
         .dot-wrapper
           text-align center
           font-size 0
+        .progress-wrapper
+          display flex
+          align-items center
+          width 80%
+          margin 0 auto
+          padding 10px 0
+          .time
+            color $color-text
+            font-size $font-size-small
+            flex 0 0 30px
+            width 30px
+            &.time-l
+              text-align left
+            &.time-radius
+              text-align right
+          .progress-bar-wrapper
+            flex 1
         .operators
           display flex
           align-items center
